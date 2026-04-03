@@ -45,7 +45,20 @@ master-guard init --paths /etc /usr/bin --baseline baseline.json
 master-guard scan --baseline baseline.json
 ```
 
-exit codes:
+### Schedule scans with cron
+
+>Example crontab entry to run every 15 minutes and append output to a log file:
+
+```cron
+*/15 * * * * /bin/bash -lc 'source /<path-to-project>/master-guard/.venv/bin/activate && master-guard scan --baseline <path-to-basline> >> /var/log/master-guard-scan.log 2>&1'
+```
+
+notes:
+- create the baseline first with `master-guard init ...`
+- make sure the user running cron has read access to scanned paths and write access to the log file
+- use `crontab -e` to add the job and `crontab -l` to verify it
+
+### Exit codes:
 
 - 0 = no file changes detected
 - 1 = changes detected (added, modified, or deleted)
