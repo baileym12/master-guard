@@ -1,7 +1,8 @@
-# Master Guard
+# master-guard
 
-Master Guard is a small open source file integrity monitoring tool for Linux systems.
-It helps detect unauthorized file changes by storing trusted SHA-256 hashes for selected files, then scanning for changes.
+master-guard is a small open source file integrity monitoring tool for Linux systems.
+It detects unauthorized file changes by storing SHA-256 hashes for selected files, then scanning for changes.
+
 
 ## What it does
 
@@ -11,15 +12,18 @@ It helps detect unauthorized file changes by storing trusted SHA-256 hashes for 
 - detects deleted files
 - allows manual approval of expected changes
 
+
 ## How it works
 
 1. run init to scan selected paths and write metadata and file hashes to a local JSON file
 2. run scan to compare current file state with baseline
 3. if expected changes happened, run approve to update the baseline
 
+
 ## Requirements
 
-- python 3.10+
+- Python 3.10+
+
 
 ## Installation
 
@@ -31,7 +35,9 @@ source .venv/bin/activate
 pip install -e .
 ```
 
+
 ## Usage
+
 
 ### Create a baseline
 
@@ -45,34 +51,37 @@ master-guard init --paths /etc /usr/bin --baseline baseline.json
 master-guard scan --baseline baseline.json
 ```
 
-exit codes:
+Exit codes:
 
 - 0 = no file changes detected
 - 1 = changes detected (added, modified, or deleted)
 - 2 = error
 
+
 ### Approve expected changes
 
-interactive mode:
+Interactive mode:
 
 ```bash
 master-guard approve --baseline baseline.json
 ```
 
-non-interactive mode:
+Non-interactive mode:
 
 ```bash
 master-guard approve --baseline baseline.json --yes
 ```
 
+
 ## Baseline file format
 
-the baseline is a JSON document containing:
+The baseline is a JSON document containing:
 
 - version
 - created_at timestamp
 - scanned paths
 - files mapping of absolute file path -> sha256 hex digest
+
 
 ## Project structure
 
