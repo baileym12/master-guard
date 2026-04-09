@@ -118,7 +118,15 @@ Live monitor behavior:
 
 A very simple dashboard is included at `index.html` and reads `live-events.jsonl`.
 
-Run it from the project root:
+Launch from the CLI:
+
+```bash
+master-guard dashboard --host 127.0.0.1 --port 8080 --root .
+```
+
+Then open `http://127.0.0.1:8080/index.html`.
+
+You can still run a plain static server from the project root:
 
 ```bash
 python -m http.server 8080
@@ -150,6 +158,7 @@ The baseline is a JSON document containing:
 ```text
 src/master_guard/
 	cli.py       # command-line commands
+	dashboard.py # dashboard web server command
 	hashing.py   # SHA-256 hashing helpers
 	scanner.py   # snapshot build and compare logic
 	storage.py   # baseline read/write

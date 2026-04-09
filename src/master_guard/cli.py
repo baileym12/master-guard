@@ -5,6 +5,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .dashboard import run_dashboard_server
 from .monitor import normalize_events_file_path, run_monitor_loop
 from .scanner import build_diffs, build_snapshot, compare_snapshots, normalize_paths
 from .storage import (
@@ -46,6 +47,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--events-file",
         default="live-events.jsonl",
         help="Path to live event log file (default: live-events.jsonl)",
+    )
+
+    dashboard_parser = subparsers.add_parser("dashboard", help="Launch web dashboard")
+    dashboard_parser.add_argument("--host", default="127.0.0.1")
+    dashboard_parser.add_argument("--port", type=int, default=8080)
+    dashboard_parser.add_argument(
+        "--root",
+        default=".",
+        help="Directory to serve (default: current directory)",
     )
 
     return parser
@@ -194,6 +204,12 @@ def _run_monitor(baseline_path: str, interval_seconds: float, events_file: str) 
     )
 
 
+def _run_dashboard(host: str, port: int, root: str) -> int:
+    if port <= 0 or port > 65535:
+        raise ValueError("port must be between 1 and 65535")
+    return run_dashboard_server(host=host, port=port, root=root)
+
+
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
@@ -207,6 +223,8 @@ def main() -> int:
             return _run_approve(args.baseline, args.yes)
         if args.command == "monitor":
             return _run_monitor(args.baseline, args.interval, args.events_file)
+        if args.command == "dashboard":
+            return _run_dashboard(args.host, args.port, args.root)
         parser.error(f"unknown command: {args.command}")
     except FileNotFoundError:
         print(f"baseline not found: {args.baseline}", file=sys.stderr)
