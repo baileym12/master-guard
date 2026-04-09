@@ -43,24 +43,35 @@ pip install -e .
 ## Usage
 
 
-### Create a baseline
+### Initialize a baseline
+
+Create a baseline snapshot of directories or files to be monitored:
 
 ```bash
 master-guard init --paths /etc /usr/bin --baseline baseline.json
 ```
 
+**Flags:**
+- `--paths`: (Required) One or more paths to scan.
+- `--baseline`: Path to save the baseline JSON file (default: `baseline.json`).
+
 ### Run an integrity scan
+
+Run a one-off comparison of the current file state against the baseline:
 
 ```bash
 master-guard scan --baseline baseline.json
 ```
+
+**Flags:**
+- `--baseline`: Path to the baseline JSON file (default: `baseline.json`).
 
 ### Schedule scans with cron
 
 >Example crontab entry to run every 15 minutes and append output to a log file:
 
 ```cron
-*/15 * * * * /bin/bash -lc 'source /<path-to-project>/master-guard/.venv/bin/activate && master-guard scan --baseline <path-to-basline> >> /var/log/master-guard-scan.log 2>&1'
+*/15 * * * * /bin/bash -lc 'source /<path-to-project>/master-guard/.venv/bin/activate && master-guard scan --baseline <path-to-baseline> >> /var/log/master-guard-scan.log 2>&1'
 ```
 
 notes:
@@ -75,6 +86,27 @@ notes:
 - 2 = error
 
 
+### Approve expected changes
+
+Update the baseline after authorized file changes have been made.
+
+Interactive mode:
+
+```bash
+master-guard approve --baseline baseline.json
+```
+
+Non-interactive mode (auto-yes):
+
+```bash
+master-guard approve --baseline baseline.json --yes
+```
+
+**Flags:**
+- `--baseline`: Path to the baseline JSON file (default: `baseline.json`).
+- `--yes`: Approve all changes without prompting.
+
+
 ### Monitor live changes
 
 Run a continuous monitoring loop to detect changes in real-time and log them to a file:
@@ -83,29 +115,25 @@ Run a continuous monitoring loop to detect changes in real-time and log them to 
 master-guard monitor --baseline baseline.json --interval 2.0 --events-file live-events.jsonl
 ```
 
+**Flags:**
+- `--baseline`: Path to the baseline JSON file (default: `baseline.json`).
+- `--interval`: Polling interval in seconds (default: `2.0`).
+- `--events-file`: Path to live event log file (default: `live-events.jsonl`).
+
 
 ### View the dashboard
 
 Launch the web dashboard to visualize live monitoring events:
 
 ```bash
-master-guard dashboard --host 127.0.0.1 --port 8080 --root .
+master-guard dashboard --host 127.0.0.1 --port 8080 --root . --events-file live-events.jsonl
 ```
 
-
-### Approve expected changes
-
-Interactive mode:
-
-```bash
-master-guard approve --baseline baseline.json
-```
-
-Non-interactive mode:
-
-```bash
-master-guard approve --baseline baseline.json --yes
-```
+**Flags:**
+- `--host`: Host IP to bind the dashboard to (default: `127.0.0.1`).
+- `--port`: Port to run the dashboard on (default: `8080`).
+- `--root`: Directory to serve (default: `.`).
+- `--events-file`: Path to live event log file (default: `live-events.jsonl`).
 
 
 ## Baseline file format
