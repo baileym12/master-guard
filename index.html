@@ -12,12 +12,14 @@
       --bg: #050509;
       --card: rgba(255, 255, 255, 0.04);
       --card-strong: rgba(255, 255, 255, 0.08);
-      --ink: #f7f8ff;
-      --muted: #b6bdd7;
-      --line: rgba(181, 191, 255, 0.22);
+      --ink: #ffffff;
+      --muted: #d4dcff;
+      --line: rgba(191, 208, 255, 0.28);
       --purple: #510b91;
       --violet: #6b2fd1;
       --blue: #3d2c9e;
+      --blue-deep: #002db3;
+      --blue-mid: #172591;
       --danger: #ff507c;
       --warn: #8f6bff;
       --ok: #5cb6ff;
@@ -34,10 +36,10 @@
       color: var(--ink);
       font-family: "Space Grotesk", "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at 12% 18%, rgba(81, 11, 145, 0.5), transparent 34%),
-        radial-gradient(circle at 84% 14%, rgba(61, 44, 158, 0.48), transparent 31%),
-        radial-gradient(circle at 60% 80%, rgba(107, 47, 209, 0.36), transparent 32%),
-        linear-gradient(160deg, #020205 0%, #070712 46%, #0a0620 100%);
+        radial-gradient(circle at 8% 18%, rgba(0, 45, 179, 0.48), transparent 36%),
+        radial-gradient(circle at 84% 10%, rgba(23, 37, 145, 0.48), transparent 34%),
+        radial-gradient(circle at 62% 82%, rgba(81, 11, 145, 0.42), transparent 36%),
+        linear-gradient(160deg, #010104 0%, #040817 38%, #12072b 100%);
       padding: 1.3rem;
       overflow-x: hidden;
       position: relative;
@@ -59,7 +61,7 @@
       height: 28rem;
       top: -10rem;
       right: -8rem;
-      background: radial-gradient(circle, #510b91 0%, rgba(81, 11, 145, 0) 65%);
+      background: radial-gradient(circle, #002db3 0%, rgba(0, 45, 179, 0) 65%);
     }
 
     body::after {
@@ -67,7 +69,7 @@
       height: 30rem;
       left: -10rem;
       bottom: -14rem;
-      background: radial-gradient(circle, #3d2c9e 0%, rgba(61, 44, 158, 0) 65%);
+      background: radial-gradient(circle, #510b91 0%, rgba(81, 11, 145, 0) 65%);
       animation-duration: 15s;
     }
 
@@ -91,7 +93,7 @@
 
     .card {
       background:
-        linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
         var(--card);
       border: 1px solid var(--line);
       border-radius: 16px;
@@ -102,17 +104,26 @@
         0 20px 45px rgba(2, 4, 12, 0.46);
     }
 
+    .hero {
+      text-align: center;
+      padding-top: 1.25rem;
+      padding-bottom: 1.25rem;
+      background:
+        linear-gradient(120deg, rgba(0, 45, 179, 0.22), rgba(81, 11, 145, 0.24)),
+        linear-gradient(170deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    }
+
     h1 {
       margin: 0;
       font-size: clamp(1.35rem, 3.7vw, 2.4rem);
       letter-spacing: 0.04em;
       text-transform: uppercase;
       font-weight: 700;
-      background: linear-gradient(120deg, #ffffff 10%, #d8cbff 40%, #80adff 95%);
+      background: linear-gradient(120deg, #ffffff 5%, #c5d8ff 45%, #d9beff 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      text-shadow: 0 0 20px rgba(151, 119, 255, 0.26);
+      text-shadow: 0 0 24px rgba(120, 155, 255, 0.32);
     }
 
     .meta {
@@ -133,29 +144,30 @@
     }
 
     .event {
-      border: 1px solid rgba(176, 187, 255, 0.2);
-      border-left: 4px solid rgba(176, 187, 255, 0.5);
+      border: 1px solid rgba(196, 207, 255, 0.34);
+      border-left: 4px solid rgba(196, 207, 255, 0.86);
       padding: 0.85rem;
       border-radius: 0.7rem;
       background:
-        linear-gradient(130deg, rgba(107, 47, 209, 0.16), rgba(61, 44, 158, 0.14)),
-        rgba(6, 8, 20, 0.72);
+        linear-gradient(130deg, rgba(0, 45, 179, 0.2), rgba(81, 11, 145, 0.24)),
+        rgba(6, 8, 20, 0.88);
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
       animation: fade-in 220ms ease-out;
+      color: #f8fbff;
     }
 
     .event.has-change {
       border-left-color: var(--danger);
       background:
-        linear-gradient(132deg, rgba(81, 11, 145, 0.33), rgba(61, 44, 158, 0.2)),
-        rgba(10, 8, 24, 0.8);
+        linear-gradient(132deg, rgba(0, 45, 179, 0.22), rgba(81, 11, 145, 0.34)),
+        rgba(10, 8, 24, 0.9);
     }
 
     .event.start {
       border-left-color: var(--ok);
       background:
-        linear-gradient(132deg, rgba(61, 44, 158, 0.33), rgba(81, 11, 145, 0.2)),
-        rgba(7, 10, 24, 0.8);
+        linear-gradient(132deg, rgba(0, 45, 179, 0.28), rgba(23, 37, 145, 0.3)),
+        rgba(7, 10, 24, 0.88);
     }
 
     .event time {
@@ -165,8 +177,32 @@
       font-size: 0.83rem;
     }
 
+    .event-summary {
+      color: #ffffff;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      margin-bottom: 0.2rem;
+    }
+
     .file-group {
       margin: 0.3rem 0;
+      color: #eef3ff;
+    }
+
+    .report-path,
+    .path-line {
+      color: #dbe5ff;
+      margin-top: 0.35rem;
+    }
+
+    #status {
+      margin-bottom: 0.85rem;
+      border: 1px solid rgba(161, 188, 255, 0.45);
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(0, 45, 179, 0.24), rgba(81, 11, 145, 0.2));
+      color: #ffffff;
+      padding: 0.62rem 0.75rem;
+      font-weight: 600;
     }
 
     .tag {
@@ -223,7 +259,7 @@
 </head>
 <body>
   <main class="wrap">
-    <section class="card">
+    <section class="card hero">
       <h1>Master Guard Live Dashboard</h1>
       <p class="meta">Polling <span id="event-file" class="mono"></span> every 2s</p>
       <p class="meta">Use <span class="mono">?file=/path/to/live-events.jsonl</span> to point at another event file.</p>
@@ -258,16 +294,18 @@
       if (event.event === "monitor_started") {
         const line = document.createElement("div");
         line.textContent = "Monitor started";
+        line.className = "event-summary";
         card.appendChild(line);
 
         const paths = document.createElement("div");
-        paths.className = "mono";
+        paths.className = "mono path-line";
         paths.textContent = `paths: ${(event.paths || []).join(", ")}`;
         card.appendChild(paths);
         return card;
       }
 
       const changed = document.createElement("div");
+      changed.className = "event-summary";
       changed.textContent = `${(event.modified || []).length + (event.added || []).length + (event.deleted || []).length} file(s) changed`;
       card.appendChild(changed);
 
@@ -289,7 +327,7 @@
 
       if (event.report_dir) {
         const report = document.createElement("div");
-        report.className = "mono";
+        report.className = "mono report-path";
         report.textContent = `report: ${event.report_dir}`;
         card.appendChild(report);
       }
