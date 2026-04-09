@@ -9,6 +9,8 @@ class ChangeReport:
     added: list[str] = field(default_factory=list)
     deleted: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
+    diffs: dict[str, str] = field(default_factory=dict)
+    report_dir: str | None = None
 
     @property
     def has_changes(self) -> bool:

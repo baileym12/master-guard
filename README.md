@@ -10,6 +10,8 @@ It detects unauthorized file changes by storing SHA-256 hashes for selected file
 - detects file modifications by comparing SHA-256 hashes
 - detects newly added files
 - detects deleted files
+- shows git-style unified diffs for text file changes
+- stores every scan result and patch files on disk
 - allows manual approval of expected changes
 
 
@@ -50,6 +52,18 @@ master-guard init --paths /etc /usr/bin --baseline baseline.json
 ```bash
 master-guard scan --baseline baseline.json
 ```
+
+When changes are detected, `scan` now:
+
+- prints unified diff output (similar to `git diff`) for changed text files
+- writes a timestamped report directory next to the baseline file:
+	- `master-guard-reports/<timestamp>/summary.json`
+	- `master-guard-reports/<timestamp>/combined.patch`
+	- `master-guard-reports/<timestamp>/diffs/*.diff`
+
+For binary, non-UTF-8, or large files, the report notes that a text diff is not available.
+
+`baseline.json` and `master-guard-reports/` are automatically excluded from tracked results.
 
 ### Schedule scans with cron
 
@@ -93,7 +107,9 @@ The baseline is a JSON document containing:
 - version
 - created_at timestamp
 - scanned paths
-- files mapping of absolute file path -> sha256 hex digest
+- files mapping of absolute file path -> object with:
+	- `sha256` hex digest
+	- optional `text` snapshot for UTF-8 files up to a safety size limit
 
 
 ## Project structure

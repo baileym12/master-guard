@@ -2,9 +2,15 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
-from .scanner import build_snapshot, compare_snapshots, normalize_paths
-from .storage import load_baseline, save_baseline
+from .scanner import build_diffs, build_snapshot, compare_snapshots, normalize_paths
+from .storage import (
+    load_baseline,
+    reports_root_for_baseline,
+    save_baseline,
+    write_scan_report,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -36,9 +42,24 @@ def _print_report(prefix: str, items: list[str]) -> None:
         print(f"  - {item}")
 
 
+def _print_diffs(diffs: dict[str, str]) -> None:
+    for path, diff in sorted(diffs.items()):
+        print(f"diff -- master-guard {path}")
+        print(diff if diff else "(no diff generated)")
+
+
+def _ignored_paths_for_baseline(baseline_path: str) -> list[str]:
+    baseline_abs = str(Path(baseline_path).expanduser().resolve())
+    reports_root = str(reports_root_for_baseline(baseline_path))
+    return [baseline_abs, reports_root]
+
+
 def _run_init(paths: list[str], baseline_path: str) -> int:
     normalized_paths = [str(p) for p in normalize_paths(paths)]
-    files, errors = build_snapshot(normalized_paths)
+    files, errors = build_snapshot(
+        normalized_paths,
+        ignored_paths=_ignored_paths_for_baseline(baseline_path),
+    )
     save_baseline(baseline_path, normalized_paths, files)
 
     print(f"baseline saved to {baseline_path}")
@@ -52,14 +73,32 @@ def _run_scan(baseline_path: str) -> int:
     baseline_files = data["files"]
     paths = data["paths"]
 
-    current_files, errors = build_snapshot(paths)
+    current_files, errors = build_snapshot(
+        paths,
+        ignored_paths=_ignored_paths_for_baseline(baseline_path),
+    )
     report = compare_snapshots(baseline_files, current_files)
     report.errors.extend(errors)
+    report.diffs = build_diffs(baseline_files, current_files, report)
+
+    if report.has_changes or report.errors:
+        report.report_dir = write_scan_report(
+            baseline_path,
+            report.modified,
+            report.added,
+            report.deleted,
+            report.errors,
+            report.diffs,
+        )
 
     _print_report("modified files", report.modified)
     _print_report("added files", report.added)
     _print_report("deleted files", report.deleted)
     _print_report("scan errors", report.errors)
+    if report.has_changes:
+        _print_diffs(report.diffs)
+    if report.report_dir:
+        print(f"scan report saved to {report.report_dir}")
 
     if report.has_changes:
         print("integrity check failed: changes detected")
@@ -73,14 +112,20 @@ def _run_approve(baseline_path: str, auto_yes: bool) -> int:
     data = load_baseline(baseline_path)
     paths = data["paths"]
     baseline_files = data["files"]
-    current_files, errors = build_snapshot(paths)
+    current_files, errors = build_snapshot(
+        paths,
+        ignored_paths=_ignored_paths_for_baseline(baseline_path),
+    )
     report = compare_snapshots(baseline_files, current_files)
     report.errors.extend(errors)
+    report.diffs = build_diffs(baseline_files, current_files, report)
 
     _print_report("modified files", report.modified)
     _print_report("added files", report.added)
     _print_report("deleted files", report.deleted)
     _print_report("scan errors", report.errors)
+    if report.has_changes:
+        _print_diffs(report.diffs)
 
     if not report.has_changes and not report.errors:
         print("no changes to approve")
