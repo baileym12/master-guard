@@ -50,12 +50,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     dashboard_parser = subparsers.add_parser("dashboard", help="Launch web dashboard")
-    dashboard_parser.add_argument("--host", default="127.0.0.1")
-    dashboard_parser.add_argument("--port", type=int, default=8080)
+    dashboard_parser.add_argument("--host", default="127.0.0.1", help="Host to bind the dashboard to")
+    dashboard_parser.add_argument("--port", type=int, default=8080, help="Port to bind the dashboard to")
     dashboard_parser.add_argument(
         "--root",
         default=".",
         help="Directory to serve (default: current directory)",
+    )
+    dashboard_parser.add_argument(
+        "--events-file",
+        default="live-events.jsonl",
+        help="Path to live event log file (default: live-events.jsonl)",
     )
 
     return parser
@@ -215,10 +220,10 @@ def _run_monitor(baseline_path: str, interval_seconds: float, events_file: str) 
     )
 
 
-def _run_dashboard(host: str, port: int, root: str) -> int:
+def _run_dashboard(host: str, port: int, root: str, events_file: str) -> int:
     if port <= 0 or port > 65535:
         raise ValueError("port must be between 1 and 65535")
-    return run_dashboard_server(host=host, port=port, root=root)
+    return run_dashboard_server(host=host, port=port, root=root, events_file=events_file)
 
 
 def main() -> int:
@@ -235,7 +240,7 @@ def main() -> int:
         if args.command == "monitor":
             return _run_monitor(args.baseline, args.interval, args.events_file)
         if args.command == "dashboard":
-            return _run_dashboard(args.host, args.port, args.root)
+            return _run_dashboard(args.host, args.port, args.root, args.events_file)
         parser.error(f"unknown command: {args.command}")
     except FileNotFoundError:
         print(f"baseline not found: {args.baseline}", file=sys.stderr)
