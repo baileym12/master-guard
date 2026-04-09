@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>master-guard live dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-top: #f6f9e8;
+      --bg-bottom: #d5f0d6;
+      --card: #ffffff;
+      --ink: #0f2a1f;
+      --muted: #3e6554;
+      --danger: #9f2f16;
+      --warn: #a86f00;
+      --ok: #1c6b3f;
+      --line: #b6d9c3;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 10% 10%, #fff8d7 0, transparent 25%),
+        radial-gradient(circle at 90% 80%, #bcead5 0, transparent 30%),
+        linear-gradient(155deg, var(--bg-top), var(--bg-bottom));
+      padding: 1.25rem;
+    }
+
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .card {
+      background: color-mix(in srgb, var(--card) 85%, transparent);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1rem;
+      backdrop-filter: blur(4px);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 3vw, 1.9rem);
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+    }
+
+    .meta {
+      margin-top: 0.5rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .mono {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.85rem;
+      overflow-wrap: anywhere;
+    }
+
+    .events {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .event {
+      border-left: 4px solid var(--line);
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      background: #ffffff;
+      animation: fade-in 200ms ease-out;
+    }
+
+    .event.has-change {
+      border-left-color: var(--danger);
+    }
+
+    .event.start {
+      border-left-color: var(--ok);
+    }
+
+    .event time {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .file-group {
+      margin: 0.3rem 0;
+    }
+
+    .tag {
+      display: inline-block;
+      min-width: 1.6rem;
+      text-align: center;
+      border-radius: 0.4rem;
+      padding: 0.05rem 0.3rem;
+      margin-right: 0.4rem;
+      color: white;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.8rem;
+    }
+
+    .tag.m {
+      background: var(--warn);
+    }
+
+    .tag.a {
+      background: var(--ok);
+    }
+
+    .tag.d {
+      background: var(--danger);
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>master-guard live dashboard</h1>
+      <p class="meta">Polling <span id="event-file" class="mono"></span> every 2s</p>
+      <p class="meta">Use <span class="mono">?file=/path/to/live-events.jsonl</span> to point at another event file.</p>
+    </section>
+
+    <section class="card">
+      <div class="meta" id="status">Loading events...</div>
+      <div class="events" id="events"></div>
+    </section>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const eventFile = params.get("file") || "live-events.jsonl";
+    const eventFileNode = document.getElementById("event-file");
+    const statusNode = document.getElementById("status");
+    const eventsNode = document.getElementById("events");
+
+    eventFileNode.textContent = eventFile;
+    let lastSignature = "";
+
+    function makeEventCard(event) {
+      const card = document.createElement("article");
+      const hasChange = (event.modified?.length || 0) + (event.added?.length || 0) + (event.deleted?.length || 0) > 0;
+      card.className = `event ${hasChange ? "has-change" : ""} ${event.event === "monitor_started" ? "start" : ""}`;
+
+      const when = document.createElement("time");
+      when.className = "mono";
+      when.textContent = event.created_at || "unknown time";
+      card.appendChild(when);
+
+      if (event.event === "monitor_started") {
+        const line = document.createElement("div");
+        line.textContent = "Monitor started";
+        card.appendChild(line);
+
+        const paths = document.createElement("div");
+        paths.className = "mono";
+        paths.textContent = `paths: ${(event.paths || []).join(", ")}`;
+        card.appendChild(paths);
+        return card;
+      }
+
+      const changed = document.createElement("div");
+      changed.textContent = `${(event.modified || []).length + (event.added || []).length + (event.deleted || []).length} file(s) changed`;
+      card.appendChild(changed);
+
+      [
+        ["M", "m", event.modified || []],
+        ["A", "a", event.added || []],
+        ["D", "d", event.deleted || []],
+      ].forEach(([label, cls, paths]) => {
+        if (!paths.length) {
+          return;
+        }
+        paths.forEach((path) => {
+          const row = document.createElement("div");
+          row.className = "file-group mono";
+          row.innerHTML = `<span class="tag ${cls}">${label}</span>${path}`;
+          card.appendChild(row);
+        });
+      });
+
+      if (event.report_dir) {
+        const report = document.createElement("div");
+        report.className = "mono";
+        report.textContent = `report: ${event.report_dir}`;
+        card.appendChild(report);
+      }
+
+      return card;
+    }
+
+    async function poll() {
+      try {
+        const response = await fetch(`${eventFile}?_=${Date.now()}`, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const content = await response.text();
+        const trimmed = content.trim();
+        const signature = `${trimmed.length}:${trimmed.slice(-50)}`;
+        if (signature === lastSignature) {
+          statusNode.textContent = `Watching for changes (${new Date().toLocaleTimeString()})`;
+          return;
+        }
+
+        lastSignature = signature;
+        const lines = trimmed ? trimmed.split("\n") : [];
+        const events = lines.map((line) => JSON.parse(line)).reverse();
+
+        eventsNode.innerHTML = "";
+        events.forEach((event) => eventsNode.appendChild(makeEventCard(event)));
+
+        statusNode.textContent = `${events.length} event(s) loaded`;
+      } catch (error) {
+        statusNode.textContent = `Waiting for event file... (${error.message})`;
+      }
+    }
+
+    poll();
+    setInterval(poll, 2000);
+  </script>
+</body>
+</html>

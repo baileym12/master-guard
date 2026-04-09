@@ -114,6 +114,24 @@ Live monitor behavior:
 - writes one JSON object per line to `live-events.jsonl`
 - writes per-change diff report folders in `master-guard-reports/`
 
+### Simple web dashboard
+
+A very simple dashboard is included at `index.html` and reads `live-events.jsonl`.
+
+Run it from the project root:
+
+```bash
+python -m http.server 8080
+```
+
+Then open `http://localhost:8080/index.html`.
+
+If your event file is elsewhere, pass it as a query string:
+
+`http://localhost:8080/index.html?file=/tmp/mg-live/live-events.jsonl`
+
+The page polls every 2 seconds and updates when new lines are added.
+
 
 ## Baseline file format
 
