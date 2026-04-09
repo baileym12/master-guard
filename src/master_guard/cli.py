@@ -64,15 +64,26 @@ def build_parser() -> argparse.ArgumentParser:
 def _print_report(prefix: str, items: list[str]) -> None:
     if not items:
         return
-    print(f"{prefix} ({len(items)}):")
+    print(f"\033[1;36m{prefix}\033[0m ({len(items)}):")
     for item in items:
         print(f"  - {item}")
 
 
 def _print_diffs(diffs: dict[str, str]) -> None:
     for path, diff in sorted(diffs.items()):
-        print(f"diff -- master-guard {path}")
-        print(diff if diff else "(no diff generated)")
+        print(f"\033[1;35mdiff -- master-guard {path}\033[0m")
+        if not diff:
+            print("(no diff generated)")
+            continue
+        for line in diff.splitlines(keepends=False):
+            if line.startswith('+'):
+                print(f"\033[32m{line}\033[0m")
+            elif line.startswith('-'):
+                print(f"\033[31m{line}\033[0m")
+            elif line.startswith('@'):
+                print(f"\033[36m{line}\033[0m")
+            else:
+                print(line)
 
 
 def _ignored_paths_for_baseline(baseline_path: str) -> list[str]:

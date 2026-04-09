@@ -11,18 +11,29 @@ from .storage import append_live_event
 
 def _print_live_notification(report: ChangeReport) -> None:
     total = len(report.modified) + len(report.added) + len(report.deleted)
-    print(f"change detected ({total} file(s))")
+    print(f"\033[1;36mchange detected\033[0m ({total} file(s))")
 
     for path in report.modified:
-        print(f"  M {path}")
+        print(f"  \033[33mM\033[0m {path}")
     for path in report.added:
-        print(f"  A {path}")
+        print(f"  \033[32mA\033[0m {path}")
     for path in report.deleted:
-        print(f"  D {path}")
+        print(f"  \033[31mD\033[0m {path}")
 
     for path, diff in sorted(report.diffs.items()):
-        print(f"diff -- master-guard {path}")
-        print(diff if diff else "(no diff generated)")
+        print(f"\033[1;35mdiff -- master-guard {path}\033[0m")
+        if not diff:
+            print("(no diff generated)")
+            continue
+        for line in diff.splitlines(keepends=False):
+            if line.startswith('+'):
+                print(f"\033[32m{line}\033[0m")
+            elif line.startswith('-'):
+                print(f"\033[31m{line}\033[0m")
+            elif line.startswith('@'):
+                print(f"\033[36m{line}\033[0m")
+            else:
+                print(line)
 
 
 def run_monitor_loop(

@@ -239,6 +239,14 @@
       padding: 0.5rem 0.75rem;
       border-radius: 6px;
       border: 1px solid rgba(255, 255, 255, 0.05);
+      text-decoration: none;
+      display: block;
+      width: fit-content;
+    }
+    
+    .report-path:hover {
+      background: rgba(0, 0, 0, 0.4);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     #status {
@@ -404,9 +412,12 @@
       });
 
       if (event.report_dir) {
-        const report = document.createElement("div");
+        const urlPath = event.report_dir.split('/').slice(-2).join('/');
+        const report = document.createElement("a");
         report.className = "mono report-path";
-        report.textContent = `report: ${event.report_dir}`;
+        report.href = urlPath + "/combined.patch";
+        report.target = "_blank";
+        report.textContent = `view report: ${event.report_dir}`;
         card.appendChild(report);
       }
 
