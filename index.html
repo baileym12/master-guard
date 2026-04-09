@@ -3,21 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>master-guard live dashboard</title>
+  <title>Master Guard Live Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg-top: #f6f9e8;
-      --bg-bottom: #d5f0d6;
-      --card: #ffffff;
-      --ink: #0f2a1f;
-      --muted: #3e6554;
-      --danger: #9f2f16;
-      --warn: #a86f00;
-      --ok: #1c6b3f;
-      --line: #b6d9c3;
+      --bg: #050509;
+      --card: rgba(255, 255, 255, 0.04);
+      --card-strong: rgba(255, 255, 255, 0.08);
+      --ink: #f7f8ff;
+      --muted: #b6bdd7;
+      --line: rgba(181, 191, 255, 0.22);
+      --purple: #510b91;
+      --violet: #6b2fd1;
+      --blue: #3d2c9e;
+      --danger: #ff507c;
+      --warn: #8f6bff;
+      --ok: #5cb6ff;
+      --shine: #d9d2ff;
     }
 
     * {
@@ -28,44 +32,98 @@
       margin: 0;
       min-height: 100vh;
       color: var(--ink);
-      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-      background: radial-gradient(circle at 10% 10%, #fff8d7 0, transparent 25%),
-        radial-gradient(circle at 90% 80%, #bcead5 0, transparent 30%),
-        linear-gradient(155deg, var(--bg-top), var(--bg-bottom));
-      padding: 1.25rem;
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(81, 11, 145, 0.5), transparent 34%),
+        radial-gradient(circle at 84% 14%, rgba(61, 44, 158, 0.48), transparent 31%),
+        radial-gradient(circle at 60% 80%, rgba(107, 47, 209, 0.36), transparent 32%),
+        linear-gradient(160deg, #020205 0%, #070712 46%, #0a0620 100%);
+      padding: 1.3rem;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(34px);
+      opacity: 0.35;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+
+    body::before {
+      width: 28rem;
+      height: 28rem;
+      top: -10rem;
+      right: -8rem;
+      background: radial-gradient(circle, #510b91 0%, rgba(81, 11, 145, 0) 65%);
+    }
+
+    body::after {
+      width: 30rem;
+      height: 30rem;
+      left: -10rem;
+      bottom: -14rem;
+      background: radial-gradient(circle, #3d2c9e 0%, rgba(61, 44, 158, 0) 65%);
+      animation-duration: 15s;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+      to {
+        transform: translate3d(18px, -14px, 0) scale(1.08);
+      }
     }
 
     .wrap {
-      max-width: 900px;
+      max-width: 980px;
       margin: 0 auto;
       display: grid;
       gap: 1rem;
+      position: relative;
+      z-index: 1;
     }
 
     .card {
-      background: color-mix(in srgb, var(--card) 85%, transparent);
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+        var(--card);
       border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 1rem;
-      backdrop-filter: blur(4px);
+      border-radius: 16px;
+      padding: 1rem 1.1rem;
+      backdrop-filter: blur(8px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 20px 45px rgba(2, 4, 12, 0.46);
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(1.2rem, 3vw, 1.9rem);
-      letter-spacing: 0.02em;
-      text-transform: lowercase;
+      font-size: clamp(1.35rem, 3.7vw, 2.4rem);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 700;
+      background: linear-gradient(120deg, #ffffff 10%, #d8cbff 40%, #80adff 95%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 20px rgba(151, 119, 255, 0.26);
     }
 
     .meta {
       margin-top: 0.5rem;
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.94rem;
     }
 
     .mono {
       font-family: "JetBrains Mono", monospace;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       overflow-wrap: anywhere;
     }
 
@@ -75,25 +133,36 @@
     }
 
     .event {
-      border-left: 4px solid var(--line);
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      background: #ffffff;
-      animation: fade-in 200ms ease-out;
+      border: 1px solid rgba(176, 187, 255, 0.2);
+      border-left: 4px solid rgba(176, 187, 255, 0.5);
+      padding: 0.85rem;
+      border-radius: 0.7rem;
+      background:
+        linear-gradient(130deg, rgba(107, 47, 209, 0.16), rgba(61, 44, 158, 0.14)),
+        rgba(6, 8, 20, 0.72);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      animation: fade-in 220ms ease-out;
     }
 
     .event.has-change {
       border-left-color: var(--danger);
+      background:
+        linear-gradient(132deg, rgba(81, 11, 145, 0.33), rgba(61, 44, 158, 0.2)),
+        rgba(10, 8, 24, 0.8);
     }
 
     .event.start {
       border-left-color: var(--ok);
+      background:
+        linear-gradient(132deg, rgba(61, 44, 158, 0.33), rgba(81, 11, 145, 0.2)),
+        rgba(7, 10, 24, 0.8);
     }
 
     .event time {
       display: block;
       color: var(--muted);
       margin-bottom: 0.35rem;
+      font-size: 0.83rem;
     }
 
     .file-group {
@@ -110,18 +179,20 @@
       color: white;
       font-family: "JetBrains Mono", monospace;
       font-size: 0.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      box-shadow: 0 0 0 1px rgba(10, 14, 35, 0.4) inset;
     }
 
     .tag.m {
-      background: var(--warn);
+      background: linear-gradient(120deg, #6a47e6, #8f6bff);
     }
 
     .tag.a {
-      background: var(--ok);
+      background: linear-gradient(120deg, #3f82ff, #5cb6ff);
     }
 
     .tag.d {
-      background: var(--danger);
+      background: linear-gradient(120deg, #d93a77, #ff507c);
     }
 
     @keyframes fade-in {
@@ -134,12 +205,26 @@
         transform: translateY(0);
       }
     }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 0.8rem;
+      }
+
+      .card {
+        padding: 0.85rem;
+      }
+
+      .meta {
+        font-size: 0.88rem;
+      }
+    }
   </style>
 </head>
 <body>
   <main class="wrap">
     <section class="card">
-      <h1>master-guard live dashboard</h1>
+      <h1>Master Guard Live Dashboard</h1>
       <p class="meta">Polling <span id="event-file" class="mono"></span> every 2s</p>
       <p class="meta">Use <span class="mono">?file=/path/to/live-events.jsonl</span> to point at another event file.</p>
     </section>
