@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import argparse
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
+from .monitor import normalize_events_file_path, run_monitor_loop
 from .scanner import build_diffs, build_snapshot, compare_snapshots, normalize_paths
 from .storage import (
+    append_live_event,
     load_baseline,
     reports_root_for_baseline,
     save_baseline,
@@ -30,6 +33,20 @@ def build_parser() -> argparse.ArgumentParser:
     approve_parser = subparsers.add_parser("approve", help="Approve and refresh baseline")
     approve_parser.add_argument("--baseline", default="baseline.json")
     approve_parser.add_argument("--yes", action="store_true", help="Approve without prompt")
+
+    monitor_parser = subparsers.add_parser("monitor", help="Live monitoring loop")
+    monitor_parser.add_argument("--baseline", default="baseline.json")
+    monitor_parser.add_argument(
+        "--interval",
+        type=float,
+        default=2.0,
+        help="Polling interval in seconds (default: 2.0)",
+    )
+    monitor_parser.add_argument(
+        "--events-file",
+        default="live-events.jsonl",
+        help="Path to live event log file (default: live-events.jsonl)",
+    )
 
     return parser
 
@@ -142,6 +159,41 @@ def _run_approve(baseline_path: str, auto_yes: bool) -> int:
     return 0
 
 
+def _run_monitor(baseline_path: str, interval_seconds: float, events_file: str) -> int:
+    if interval_seconds <= 0:
+        raise ValueError("interval must be greater than 0")
+
+    data = load_baseline(baseline_path)
+    paths = data["paths"]
+    event_log_path = normalize_events_file_path(events_file)
+    ignored_paths = _ignored_paths_for_baseline(baseline_path) + [event_log_path]
+
+    append_live_event(
+        event_log_path,
+        {
+            "event": "monitor_started",
+            "baseline": Path(baseline_path).expanduser().resolve().as_posix(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "paths": paths,
+        },
+    )
+
+    return run_monitor_loop(
+        paths=paths,
+        interval_seconds=interval_seconds,
+        ignored_paths=ignored_paths,
+        events_file=event_log_path,
+        report_writer=lambda modified, added, deleted, errors, diffs: write_scan_report(
+            baseline_path,
+            modified,
+            added,
+            deleted,
+            errors,
+            diffs,
+        ),
+    )
+
+
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
@@ -153,6 +205,8 @@ def main() -> int:
             return _run_scan(args.baseline)
         if args.command == "approve":
             return _run_approve(args.baseline, args.yes)
+        if args.command == "monitor":
+            return _run_monitor(args.baseline, args.interval, args.events_file)
         parser.error(f"unknown command: {args.command}")
     except FileNotFoundError:
         print(f"baseline not found: {args.baseline}", file=sys.stderr)

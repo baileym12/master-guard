@@ -84,7 +84,14 @@ def write_scan_report(
     diffs: dict[str, str],
 ) -> str:
     now = datetime.now(timezone.utc)
-    report_dir = reports_root_for_baseline(baseline_path) / now.strftime("%Y%m%dT%H%M%SZ")
+    base_report_dir = reports_root_for_baseline(baseline_path)
+    timestamp = now.strftime("%Y%m%dT%H%M%SZ")
+    report_dir = base_report_dir / timestamp
+    suffix = 1
+    while report_dir.exists():
+        report_dir = base_report_dir / f"{timestamp}-{suffix}"
+        suffix += 1
+
     diff_dir = report_dir / "diffs"
     diff_dir.mkdir(parents=True, exist_ok=False)
 
@@ -119,3 +126,10 @@ def write_scan_report(
     )
 
     return str(report_dir)
+
+
+def append_live_event(path: str, event: dict[str, Any]) -> None:
+    event_path = Path(path).expanduser().resolve()
+    event_path.parent.mkdir(parents=True, exist_ok=True)
+    with event_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event, sort_keys=True) + "\n")

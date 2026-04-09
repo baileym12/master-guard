@@ -12,6 +12,7 @@ It detects unauthorized file changes by storing SHA-256 hashes for selected file
 - detects deleted files
 - shows git-style unified diffs for text file changes
 - stores every scan result and patch files on disk
+- supports live monitoring and terminal notifications
 - allows manual approval of expected changes
 
 
@@ -98,6 +99,20 @@ Non-interactive mode:
 ```bash
 master-guard approve --baseline baseline.json --yes
 ```
+
+### Live monitoring
+
+Run a continuous scanner that detects changes as they happen:
+
+```bash
+master-guard monitor --baseline baseline.json --interval 2 --events-file live-events.jsonl
+```
+
+Live monitor behavior:
+
+- prints change notifications in the terminal
+- writes one JSON object per line to `live-events.jsonl`
+- writes per-change diff report folders in `master-guard-reports/`
 
 
 ## Baseline file format
