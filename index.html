@@ -247,6 +247,11 @@
       display: block;
       width: fit-content;
     }
+
+    .source-line {
+      margin-bottom: 0.8rem;
+      opacity: 0.9;
+    }
     
     .report-path:hover {
       background: rgba(0, 0, 0, 0.4);
@@ -351,19 +356,63 @@
 
     <section class="card">
       <div class="meta" id="status">Loading events...</div>
+      <div class="meta mono source-line" id="event-source"></div>
       <div class="events" id="events"></div>
     </section>
   </main>
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const eventFile = params.get("file") || "live-events.jsonl";
-    const eventFileNode = document.getElementById("event-file");
+    const eventFile = params.get("file") || "events";
+    const sourceNode = document.getElementById("event-source");
     const statusNode = document.getElementById("status");
     const eventsNode = document.getElementById("events");
 
-    eventFileNode.textContent = eventFile;
+    if (sourceNode) {
+      sourceNode.textContent = `event source: ${eventFile}`;
+    }
+
     let lastSignature = "";
+
+    function buildFetchUrl(path) {
+      const url = new URL(path, window.location.href);
+      url.searchParams.set("_", Date.now().toString());
+      return url.toString();
+    }
+
+    function parseEventLines(content) {
+      const lines = content.trim() ? content.trim().split("\n") : [];
+      const events = [];
+      let ignored = 0;
+
+      lines.forEach((line) => {
+        if (!line.trim()) {
+          return;
+        }
+        try {
+          events.push(JSON.parse(line));
+        } catch (_) {
+          ignored += 1;
+        }
+      });
+
+      return { events, ignored };
+    }
+
+    function reportPatchHref(reportDir) {
+      if (!reportDir || typeof reportDir !== "string") {
+        return null;
+      }
+
+      const marker = "master-guard-reports/";
+      const markerIndex = reportDir.indexOf(marker);
+      if (markerIndex === -1) {
+        return null;
+      }
+
+      const relative = reportDir.slice(markerIndex).replace(/\\/g, "/");
+      return `${relative}/combined.patch`;
+    }
 
     function makeEventCard(event) {
       const card = document.createElement("article");
@@ -408,18 +457,30 @@
         paths.forEach((path) => {
           const row = document.createElement("div");
           row.className = "file-group mono";
-          row.innerHTML = `<span class="tag ${cls}">${label}</span>${path}`;
+          const tag = document.createElement("span");
+          tag.className = `tag ${cls}`;
+          tag.textContent = label;
+
+          const pathText = document.createElement("span");
+          pathText.textContent = path;
+
+          row.appendChild(tag);
+          row.appendChild(pathText);
           card.appendChild(row);
         });
       });
 
       if (event.report_dir) {
-        const urlPath = event.report_dir.split('/').slice(-2).join('/');
+        const href = reportPatchHref(event.report_dir);
         const report = document.createElement("a");
         report.className = "mono report-path";
-        report.href = urlPath + "/combined.patch";
+        report.href = href || "#";
         report.target = "_blank";
+        report.rel = "noopener noreferrer";
         report.textContent = `view report: ${event.report_dir}`;
+        if (!href) {
+          report.textContent = `report path unavailable from dashboard root: ${event.report_dir}`;
+        }
         card.appendChild(report);
       }
 
@@ -428,7 +489,7 @@
 
     async function poll() {
       try {
-        const response = await fetch(`${eventFile}?_=${Date.now()}`, { cache: "no-store" });
+        const response = await fetch(buildFetchUrl(eventFile), { cache: "no-store" });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
@@ -442,13 +503,13 @@
         }
 
         lastSignature = signature;
-        const lines = trimmed ? trimmed.split("\n") : [];
-        const events = lines.map((line) => JSON.parse(line)).reverse();
+        const parsed = parseEventLines(content);
+        const events = parsed.events.reverse();
 
         eventsNode.innerHTML = "";
         events.forEach((event) => eventsNode.appendChild(makeEventCard(event)));
 
-        statusNode.textContent = `${events.length} event(s) loaded`;
+        statusNode.textContent = `${events.length} event(s) loaded${parsed.ignored ? `, ${parsed.ignored} malformed line(s) ignored` : ""}`;
       } catch (error) {
         statusNode.textContent = `Waiting for event file... (${error.message})`;
       }

@@ -89,6 +89,7 @@ def run_monitor_loop(
             append_live_event(
                 events_file,
                 {
+                    "event": "files_changed",
                     "added": report.added,
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "deleted": report.deleted,

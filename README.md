@@ -135,7 +135,6 @@ master-guard dashboard --host 127.0.0.1 --port 8080 --root . --events-file live-
 - `--root`: Directory to serve (default: `.`).
 - `--events-file`: Path to live event log file (default: `live-events.jsonl`).
 
-
 ## Baseline file format
 
 The baseline is a JSON document containing:
